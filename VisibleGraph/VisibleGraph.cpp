@@ -67,11 +67,11 @@ bool ContoursSort(std::vector<cv::Point> contour1,
 int main() {
   long begin_time = clock();
   cv::Mat Image = cv::imread(
-      "D:\\Projects\\GProject\\Data\\ISPRS\\CostMapTest1\\DispMat\\MatL.png",
-      0);
+      "D:\\Projects\\GProject\\Data\\ISPRS\\DispMat\\DP14,2.3,LR.tif", 0);
 
-  cv::threshold(Image, Image, 10, 255, cv::THRESH_BINARY);
-
+  // cv::threshold(Image, Image, 30, 255, cv::THRESH_BINARY);
+  cv::adaptiveThreshold(Image, Image, 255, cv::ADAPTIVE_THRESH_MEAN_C,
+                        cv::THRESH_BINARY_INV, 101, 0);
   std::vector<std::vector<cv::Point>> contours;
   /*cv::findContours(Image, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
   contours.erase(std::remove_if(contours.begin(), contours.end(),
@@ -85,7 +85,7 @@ int main() {
   cv::Mat element =
       cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
   cv::morphologyEx(Image, Image, cv::MORPH_CLOSE, element);*/
-  cv::threshold(Image, Image, 10, 255, cv::THRESH_BINARY_INV);
+  // cv::threshold(Image, Image, 10, 255, cv::THRESH_BINARY_INV);
 
   std::vector<std::vector<cv::Point>> contours1;
   cv::findContours(Image, contours1, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
@@ -94,7 +94,7 @@ int main() {
   cv::Mat Mask = cv::Mat::zeros(Image.size(), CV_8UC1);
   for (int i = 0; i < contours1.size(); i++) {
     if (contours1[i].size() > 10) {
-      cv::approxPolyDP(cv::Mat(contours1[i]), contours_poly[i], 5, true);
+      cv::approxPolyDP(cv::Mat(contours1[i]), contours_poly[i], 3, true);
     } else {
       contours_poly[i] = contours1[i];
     }
@@ -102,7 +102,7 @@ int main() {
 
   contours_poly.erase(std::remove_if(contours_poly.begin(), contours_poly.end(),
                                      [](const std::vector<cv::Point> &c) {
-                                       return cv::contourArea(c) < 500;
+                                       return cv::contourArea(c) < 100;
                                      }),
                       contours_poly.end());
 
@@ -209,9 +209,9 @@ int main() {
   for (int i = 0; i < GraphPoints.size(); i++) {
 
     double distanceStar =
-        powf((GraphPoints[i].x - 1250), 2) + powf((GraphPoints[i].y - 450), 2);
+        powf((GraphPoints[i].x - 750), 2) + powf((GraphPoints[i].y - 100), 2);
     double distanceEnd =
-        powf((GraphPoints[i].x - 1250), 2) + powf((GraphPoints[i].y - 8150), 2);
+        powf((GraphPoints[i].x - 700), 2) + powf((GraphPoints[i].y - 3950), 2);
     distanceStar = sqrt(distanceStar);
     distanceEnd = sqrt(distanceEnd);
     if (distanceStar < DisStart) {

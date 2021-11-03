@@ -11,9 +11,10 @@
 #include <boost/polygon/voronoi_geometry_type.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
 #include <boost/graph/graph_traits.hpp>
-#include <boost\graph\astar_search.hpp>
 #include <boost\graph\dijkstra_shortest_paths.hpp>
+
 #include <iostream>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core.hpp>
@@ -67,11 +68,14 @@ bool ContoursSort(std::vector<cv::Point> contour1,
 int main() {
   long begin_time = clock();
   cv::Mat Image = cv::imread(
-      "D:\\Projects\\GProject\\Data\\ISPRS\\DispMat\\DP14,2.3,LR.tif", 0);
+      "D:\\Projects\\GProject\\Data\\ISPRS\\DispMat\\DP0,0.1,LR.tif", 0);
+
+  /*cv::Mat originalMat = cv::imread(
+      "D:\\Projects\\GProject\\Data\\SF\\MatBuffer\\Buffer65,24.tif", 0);*/
 
   // cv::threshold(Image, Image, 30, 255, cv::THRESH_BINARY);
   cv::adaptiveThreshold(Image, Image, 255, cv::ADAPTIVE_THRESH_MEAN_C,
-                        cv::THRESH_BINARY_INV, 101, 0);
+                        cv::THRESH_BINARY_INV, 201, 0);
   std::vector<std::vector<cv::Point>> contours;
   /*cv::findContours(Image, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
   contours.erase(std::remove_if(contours.begin(), contours.end(),
@@ -102,7 +106,7 @@ int main() {
 
   contours_poly.erase(std::remove_if(contours_poly.begin(), contours_poly.end(),
                                      [](const std::vector<cv::Point> &c) {
-                                       return cv::contourArea(c) < 100;
+                                       return cv::contourArea(c) < 200;
                                      }),
                       contours_poly.end());
 
@@ -158,7 +162,7 @@ int main() {
           p1 = p_1;
           if (x0 >= 0 && x1 >= 0 && y0 >= 0 && y1 >= 0 && x0 <= Image.cols &&
               x1 <= Image.cols && y0 <= Image.rows && y1 <= Image.rows) {
-            if (Image.at<uchar>(y0, x0) == 0 && Image.at<uchar>(y1, x1) == 0) {
+            if (Image.at<uchar>(y0, x0) == 0 || Image.at<uchar>(y1, x1) == 0) {
 
               for (int i = 0; i < GraphPoints.size(); i++) {
                 if (p0 == GraphPoints[i]) {
@@ -202,6 +206,9 @@ int main() {
     }
   }
 
+  std::vector<int> component(boost::num_vertices(m_graph));
+  int num = boost::connected_components(m_graph, &component[0]);
+
   double DisStart = 999999999;
   int IDStart = -1;
   double DisEnd = 999999999;
@@ -209,9 +216,9 @@ int main() {
   for (int i = 0; i < GraphPoints.size(); i++) {
 
     double distanceStar =
-        powf((GraphPoints[i].x - 750), 2) + powf((GraphPoints[i].y - 100), 2);
+        powf((GraphPoints[i].x - 2000), 2) + powf((GraphPoints[i].y - 100), 2);
     double distanceEnd =
-        powf((GraphPoints[i].x - 700), 2) + powf((GraphPoints[i].y - 3950), 2);
+        powf((GraphPoints[i].x - 2000), 2) + powf((GraphPoints[i].y - 8000), 2);
     distanceStar = sqrt(distanceStar);
     distanceEnd = sqrt(distanceEnd);
     if (distanceStar < DisStart) {
@@ -252,15 +259,20 @@ int main() {
   for (int i = 1; i < path.size() - 2; i++) {
     cv::line(Mask, GraphPoints[path[i]], GraphPoints[path[i + 1]],
              cv::Scalar(255), 3, 8);
-    cv::line(Res, GraphPoints[path[i]], GraphPoints[path[i + 1]],
+    cv::line(Image, GraphPoints[path[i]], GraphPoints[path[i + 1]],
              cv::Scalar(255), 3, 8);
+    /*cv::line(originalMat,
+             cv::Point(GraphPoints[path[i]].x / 2, GraphPoints[path[i]].y / 3),
+             cv::Point(GraphPoints[path[i + 1]].x / 2,
+                       GraphPoints[path[i + 1]].y / 3),
+             cv::Scalar(255), 3, 8);*/
   }
 
   long end_time = clock();
   std::cout << "Generate Product: " << end_time - begin_time << "ms\n";
 
   cv::imwrite("Mask.tif", Mask);
-  cv::imwrite("Image.tif", Res);
+  cv::imwrite("Image.tif", Image);
 
   return 0;
 }

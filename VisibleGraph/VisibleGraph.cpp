@@ -65,13 +65,17 @@ bool ContoursSort(std::vector<cv::Point> contour1,
   return (cv::contourArea(contour1) > cv::contourArea(contour2));
 }
 
+bool VecSizeSort(std::vector<int> subG1, std::vector<int> subG2) {
+  return (subG1.size() > subG2.size());
+}
+
 int main() {
   long begin_time = clock();
-  /*cv::Mat Image = cv::imread(
-      "D:\\Projects\\GProject\\Data\\ISPRS\\CostMapTest1\\DispMat\\MatL.png",
-      0);*/
   cv::Mat Image = cv::imread(
-      "D:\\Projects\\GProject\\Data\\ISPRS\\DispMat\\DP0,0.1,LR.tif", 0);
+      "D:\\Projects\\GProject\\Data\\ISPRS\\CostMapTest1\\DispMat\\MatL.png",
+      0);
+  /*cv::Mat Image = cv::imread(
+      "D:\\Projects\\GProject\\Data\\ISPRS\\DispMat\\DP0,0.1,LR.tif", 0);*/
 
   /*cv::Mat originalMat = cv::imread(
       "D:\\Projects\\GProject\\Data\\SF\\MatBuffer\\Buffer65,24.tif", 0);*/
@@ -103,7 +107,7 @@ int main() {
   cv::Mat Mask = cv::Mat::zeros(Image.size(), CV_8UC1);
   for (int i = 0; i < contours1.size(); i++) {
     if (contours1[i].size() > 10) {
-      cv::approxPolyDP(cv::Mat(contours1[i]), contours_poly[i], 2, true);
+      cv::approxPolyDP(cv::Mat(contours1[i]), contours_poly[i], 3, true);
     } else {
       contours_poly[i] = contours1[i];
     }
@@ -115,7 +119,7 @@ int main() {
                                      }),
                       contours_poly.end());
 
-  cv::drawContours(Mask, contours_poly, -1, cv::Scalar(255), 1, cv::LINE_8);
+  // cv::drawContours(Mask, contours_poly, -1, cv::Scalar(255), 1, cv::LINE_8);
   Image.setTo(0);
   cv::drawContours(Image, contours_poly, -1, cv::Scalar(255), cv::FILLED);
 
@@ -167,7 +171,7 @@ int main() {
           p1 = p_1;
           if (x0 >= 0 && x1 >= 0 && y0 >= 0 && y1 >= 0 && x0 <= Image.cols &&
               x1 <= Image.cols && y0 <= Image.rows && y1 <= Image.rows) {
-            if (Image.at<uchar>(y0, x0) == 0 || Image.at<uchar>(y1, x1) == 0) {
+            if (Image.at<uchar>(y0, x0) == 0 && Image.at<uchar>(y1, x1) == 0) {
 
               for (int i = 0; i < GraphPoints.size(); i++) {
                 if (p0 == GraphPoints[i]) {
@@ -218,12 +222,51 @@ int main() {
     subGraph[component[i]].push_back(i);
   }
 
-  for (int i = 1; i < subGraph.size(); i++) {
-    for (int j = 1; j < subGraph[i].size(); j++) {
-      cv::circle(Image, GraphPoints[subGraph[i][j]], 3, cv::Scalar(255), 5,
-                 cv::LINE_8);
+  std::sort(subGraph.begin(), subGraph.end(), VecSizeSort);
+
+  /* for (int i = 0; i < subGraph.size(); i++) {
+     for (int j = 0; j < subGraph[i].size(); j++) {
+       cv::circle(Image, GraphPoints[subGraph[i][j]], 3, cv::Scalar(255), 5,
+                  cv::LINE_8);
+     }
+     int t = 0;
+   }*/
+
+  double minSubGraphDistance = 999999999;
+  double SubGraphDistance = -1;
+  int minSubi, minSubj;
+  for (int i = 0; i < subGraph.size(); i++) {
+    /*if (subGraph[i].size() < 500) {
+      continue;
+    }*/
+    for (int j = i + 1; j < subGraph.size(); j++) {
+      /*if (subGraph[j].size() < 500) {
+        continue;
+      }*/
+      for (int m = 0; m < subGraph[i].size(); m++) {
+        for (int n = 0; n < subGraph[j].size(); n++) {
+          SubGraphDistance = powf((GraphPoints[subGraph[i][m]].x -
+                                   GraphPoints[subGraph[j][n]].x),
+                                  2) +
+                             powf((GraphPoints[subGraph[i][m]].y -
+                                   GraphPoints[subGraph[j][n]].y),
+                                  2);
+          SubGraphDistance = sqrt(SubGraphDistance);
+          if (SubGraphDistance < minSubGraphDistance) {
+            minSubi = subGraph[i][m];
+            minSubj = subGraph[j][n];
+            minSubGraphDistance = SubGraphDistance;
+          }
+        }
+      }
+      if (minSubGraphDistance < 200) {
+        boost::add_edge(minSubi, minSubj, minSubGraphDistance, m_graph);
+        cv::line(Mask, GraphPoints[minSubi], GraphPoints[minSubj],
+                 cv::Scalar(255), 1, 8);
+      }
+      minSubGraphDistance = 999999999;
+      SubGraphDistance = -1;
     }
-    int t = 0;
   }
 
   double DisStart = 999999999;
@@ -233,9 +276,9 @@ int main() {
   for (int i = 0; i < GraphPoints.size(); i++) {
 
     double distanceStar =
-        powf((GraphPoints[i].x - 500), 2) + powf((GraphPoints[i].y - 100), 2);
+        powf((GraphPoints[i].x - 1000), 2) + powf((GraphPoints[i].y - 100), 2);
     double distanceEnd =
-        powf((GraphPoints[i].x - 500), 2) + powf((GraphPoints[i].y - 8000), 2);
+        powf((GraphPoints[i].x - 1000), 2) + powf((GraphPoints[i].y - 8000), 2);
     distanceStar = sqrt(distanceStar);
     distanceEnd = sqrt(distanceEnd);
     if (distanceStar < DisStart) {

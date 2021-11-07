@@ -71,8 +71,12 @@ bool VecSizeSort(std::vector<int> subG1, std::vector<int> subG2) {
 
 int main() {
   long begin_time = clock();
-  cv::Mat Image = cv::imread(
-      "D:\\Projects\\GProject\\Data\\SF\\DispMat2\\DP81,24.25.tif", 0);
+  cv::Mat Image = cv::imread("D:\\Projects\\GProject\\Code\\SeamLineAdapter("
+                             "Mine)\\SeamLineAdapter\\2.tif",
+                             0);
+  /*cv::Mat ImageL = cv::imread("D:\\Projects\\GProject\\Code\\SeamLineAdapter("
+                              "Mine)\\SeamLineAdapter\\imL.tif",
+                              0);*/
   /*cv::Mat Image = cv::imread(
       "D:\\Projects\\GProject\\Data\\ISPRS\\CostMapTest1\\DispMat\\MatL.png",
       0);*/
@@ -109,7 +113,7 @@ int main() {
   cv::Mat Mask = cv::Mat::zeros(Image.size(), CV_8UC1);
   for (int i = 0; i < contours1.size(); i++) {
     if (contours1[i].size() > 10) {
-      cv::approxPolyDP(cv::Mat(contours1[i]), contours_poly[i], 5, true);
+      cv::approxPolyDP(cv::Mat(contours1[i]), contours_poly[i], 10, true);
     } else {
       contours_poly[i] = contours1[i];
     }
@@ -261,7 +265,7 @@ int main() {
           }
         }
       }
-      if (minSubGraphDistance < 200) {
+      if (minSubGraphDistance < 100) {
         boost::add_edge(minSubi, minSubj, minSubGraphDistance, m_graph);
         cv::line(Mask, GraphPoints[minSubi], GraphPoints[minSubj],
                  cv::Scalar(255), 1, 8);
@@ -278,9 +282,9 @@ int main() {
   for (int i = 0; i < GraphPoints.size(); i++) {
 
     double distanceStar =
-        powf((GraphPoints[i].x - 150), 2) + powf((GraphPoints[i].y - 1350), 2);
+        powf((GraphPoints[i].x - 1400), 2) + powf((GraphPoints[i].y - 200), 2);
     double distanceEnd =
-        powf((GraphPoints[i].x - 4150), 2) + powf((GraphPoints[i].y - 1250), 2);
+        powf((GraphPoints[i].x - 1100), 2) + powf((GraphPoints[i].y - 8050), 2);
     distanceStar = sqrt(distanceStar);
     distanceEnd = sqrt(distanceEnd);
     if (distanceStar < DisStart) {
@@ -323,6 +327,8 @@ int main() {
              cv::Scalar(255), 3, 8);
     cv::line(Image, GraphPoints[path[i]], GraphPoints[path[i + 1]],
              cv::Scalar(255), 3, 8);
+    /*cv::line(ImageL, GraphPoints[path[i]], GraphPoints[path[i + 1]],
+             cv::Scalar(255), 3, 8);*/
     /*cv::line(originalMat,
              cv::Point(GraphPoints[path[i]].x / 2, GraphPoints[path[i]].y / 3),
              cv::Point(GraphPoints[path[i + 1]].x / 2,
@@ -333,8 +339,9 @@ int main() {
   long end_time = clock();
   std::cout << "Generate Product: " << end_time - begin_time << "ms\n";
 
-  cv::imwrite("Mask.tif", Mask);
   cv::imwrite("Image.tif", Image);
+  cv::imwrite("Mask.tif", Mask);
+  /*cv::imwrite("ImageL.tif", Image);*/
 
   return 0;
 }

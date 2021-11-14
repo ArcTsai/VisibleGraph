@@ -74,9 +74,9 @@ int main() {
   cv::Mat Image = cv::imread("D:\\Projects\\GProject\\Code\\SeamLineAdapter("
                              "Mine)\\SeamLineAdapter\\2.tif",
                              0);
-  /*cv::Mat ImageL = cv::imread("D:\\Projects\\GProject\\Code\\SeamLineAdapter("
+  cv::Mat ImageL = cv::imread("D:\\Projects\\GProject\\Code\\SeamLineAdapter("
                               "Mine)\\SeamLineAdapter\\imL.tif",
-                              0);*/
+                              0);
   /*cv::Mat Image = cv::imread(
       "D:\\Projects\\GProject\\Data\\ISPRS\\CostMapTest1\\DispMat\\MatL.png",
       0);*/
@@ -113,7 +113,7 @@ int main() {
   cv::Mat Mask = cv::Mat::zeros(Image.size(), CV_8UC1);
   for (int i = 0; i < contours1.size(); i++) {
     if (contours1[i].size() > 10) {
-      cv::approxPolyDP(cv::Mat(contours1[i]), contours_poly[i], 10, true);
+      cv::approxPolyDP(cv::Mat(contours1[i]), contours_poly[i], 0, true);
     } else {
       contours_poly[i] = contours1[i];
     }
@@ -242,13 +242,13 @@ int main() {
   double SubGraphDistance = -1;
   int minSubi, minSubj;
   for (int i = 0; i < subGraph.size(); i++) {
-    /*if (subGraph[i].size() < 500) {
+    if (subGraph[i].size() < 200) {
       continue;
-    }*/
+    }
     for (int j = i + 1; j < subGraph.size(); j++) {
-      /*if (subGraph[j].size() < 500) {
+      if (subGraph[j].size() < 200) {
         continue;
-      }*/
+      }
       for (int m = 0; m < subGraph[i].size(); m++) {
         for (int n = 0; n < subGraph[j].size(); n++) {
           SubGraphDistance = powf((GraphPoints[subGraph[i][m]].x -
@@ -265,7 +265,7 @@ int main() {
           }
         }
       }
-      if (minSubGraphDistance < 100) {
+      if (minSubGraphDistance < 200) {
         boost::add_edge(minSubi, minSubj, minSubGraphDistance, m_graph);
         cv::line(Mask, GraphPoints[minSubi], GraphPoints[minSubj],
                  cv::Scalar(255), 1, 8);
@@ -327,8 +327,8 @@ int main() {
              cv::Scalar(255), 3, 8);
     cv::line(Image, GraphPoints[path[i]], GraphPoints[path[i + 1]],
              cv::Scalar(255), 3, 8);
-    /*cv::line(ImageL, GraphPoints[path[i]], GraphPoints[path[i + 1]],
-             cv::Scalar(255), 3, 8);*/
+    cv::line(ImageL, GraphPoints[path[i]], GraphPoints[path[i + 1]],
+             cv::Scalar(255), 1, 8);
     /*cv::line(originalMat,
              cv::Point(GraphPoints[path[i]].x / 2, GraphPoints[path[i]].y / 3),
              cv::Point(GraphPoints[path[i + 1]].x / 2,
@@ -341,7 +341,7 @@ int main() {
 
   cv::imwrite("Image.tif", Image);
   cv::imwrite("Mask.tif", Mask);
-  /*cv::imwrite("ImageL.tif", Image);*/
+  cv::imwrite("ImageL.tif", ImageL);
 
   return 0;
 }
